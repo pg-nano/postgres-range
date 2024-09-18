@@ -8,9 +8,12 @@
   "author": "Abbas Mashayekh <martianboy2005@gmail.com>",
   "license": "MIT",
   "scripts": {
-    "test": "vitest"
+    "test": "vitest",
+    "build": "rimraf dist && tsc -p .",
+    "dev": "rimraf dist && tsc -p . --watch --sourcemap --declarationMap"
   },
   "devDependencies": {
+    "rimraf": "^6.0.1",
     "typescript": "^5.6.2",
     "vitest": "^2.1.1"
   }
