@@ -1,101 +1,128 @@
-'use strict'
+import { describe, expect, test } from 'vitest'
+import { Range, RangeFlag, parse, serialize } from './index'
 
-import { test, expect, describe } from 'vitest'
+describe('parse', () => {
+  const cases = [
+    ['empty', new Range(null, null, [RangeFlag.Empty])],
+    ['(,)', new Range(null, null)],
+    ['(-infinity,infinity)', new Range(null, null)],
+    ['(0,)', new Range('0', null)],
+    ['(0,10)', new Range('0', '10')],
+    ['(,10)', new Range(null, '10')],
+    ['(0,1]', new Range('0', '1', [RangeFlag.UpperBoundClosed])],
+    [
+      '[0,1]',
+      new Range('0', '1', [
+        RangeFlag.LowerBoundClosed,
+        RangeFlag.UpperBoundClosed,
+      ]),
+    ],
+    ['[0,1)', new Range('0', '1', [RangeFlag.LowerBoundClosed])],
+  ] as const
 
-const {
-  Range,
-  RANGE_EMPTY,
-  RANGE_LB_INC,
-  RANGE_UB_INC,
-  RANGE_LB_INF,
-  RANGE_UB_INF,
-
-  parse,
-  serialize
-} = require('./index')
-
-const t = (left, right, message) => test(message, () => expect(left).toStrictEqual(right))
-
-describe('parse', function () {
-  const string = parse
-
-  t(string('empty'), new Range(null, null, RANGE_EMPTY), 'empty')
-
-  t(string('(,)'), new Range(null, null, RANGE_LB_INF | RANGE_UB_INF), '(,)')
-  t(string('(-infinity,infinity)'), new Range(null, null, RANGE_LB_INF | RANGE_UB_INF), '(-infinity,infinity)')
-
-  t(string('(0,)'), new Range('0', null, RANGE_UB_INF), '(0,)')
-  t(string('(0,10)'), new Range('0', '10', 0), '(0,10)')
-  t(string('(,10)'), new Range(null, '10', RANGE_LB_INF), '(,10)')
-
-  t(string('(0,1]'), new Range('0', '1', RANGE_UB_INC), '(0,1]')
-  t(string('[0,1]'), new Range('0', '1', RANGE_LB_INC | RANGE_UB_INC), '[0,1]')
-  t(string('[0,1)'), new Range('0', '1', RANGE_LB_INC), '[0,1)')
+  for (const [input, output] of cases) {
+    test(input, () => {
+      expect(parse(input)).toStrictEqual(output)
+})
+  }
 })
 
-describe('parse: integer', function () {
-  const integer = value => parse(value, x => parseInt(x, 10))
+describe('parse: integer', () => {
+  const cases = [
+    ['empty', new Range(null, null, [RangeFlag.Empty])],
+    ['(,)', new Range(null, null)],
+    ['(0,)', new Range(0, null)],
+    ['(0,10)', new Range(0, 10, [])],
+    ['(,10)', new Range(null, 10)],
+    ['(0,1]', new Range(0, 1, [RangeFlag.UpperBoundClosed])],
+    [
+      '[0,1]',
+      new Range(0, 1, [RangeFlag.LowerBoundClosed, RangeFlag.UpperBoundClosed]),
+    ],
+    ['[0,1)', new Range(0, 1, [RangeFlag.LowerBoundClosed])],
+  ] as const
 
-  t(integer('empty'), new Range(null, null, RANGE_EMPTY), 'empty')
-
-  t(integer('(,)'), new Range(null, null, RANGE_LB_INF | RANGE_UB_INF), '(,)')
-
-  t(integer('(0,)'), new Range(0, null, RANGE_UB_INF), '(0,)')
-  t(integer('(0,10)'), new Range(0, 10, 0), '(0,10)')
-  t(integer('(,10)'), new Range(null, 10, RANGE_LB_INF), '(,10)')
-
-  t(integer('(0,1]'), new Range(0, 1, RANGE_UB_INC), '(0,1]')
-  t(integer('[0,1]'), new Range(0, 1, RANGE_LB_INC | RANGE_UB_INC), '[0,1]')
-  t(integer('[0,1)'), new Range(0, 1, RANGE_LB_INC), '[0,1)')
+  for (const [input, output] of cases) {
+    test(input, () => {
+      const actual = parse(input, x => Number.parseInt(x, 10))
+      expect(actual).toStrictEqual(output)
+    })
+  }
 })
 
-describe('parse: strings', function () {
-  const check = (a, b) => t(parse(a), b, a)
+describe('parse: strings', () => {
+  const cases = [
+    ['(,"")', new Range(null, '')],
+    ['("",)', new Range('', null)],
+    ['(A,Z)', new Range('A', 'Z', [])],
+    ['("A","Z")', new Range('A', 'Z', [])],
+    ['("""A""","""Z""")', new Range('"A"', '"Z"', [])],
+    ['("\\"A\\"","\\"Z\\"")', new Range('"A"', '"Z"', [])],
+    ['("\\(A\\)","\\(Z\\)")', new Range('(A)', '(Z)', [])],
+    ['("\\[A\\]","\\[Z\\]")', new Range('[A]', '[Z]', [])],
+  ] as const
 
-  check('(,"")', new Range(null, '', RANGE_LB_INF))
-  check('("",)', new Range('', null, RANGE_UB_INF))
-  check('(A,Z)', new Range('A', 'Z', 0))
-  check('("A","Z")', new Range('A', 'Z', 0))
-  check('("""A""","""Z""")', new Range('"A"', '"Z"', 0))
-  check('("\\"A\\"","\\"Z\\"")', new Range('"A"', '"Z"', 0))
-  check('("\\(A\\)","\\(Z\\)")', new Range('(A)', '(Z)', 0))
-  check('("\\[A\\]","\\[Z\\]")', new Range('[A]', '[Z]', 0))
+  for (const [input, output] of cases) {
+    test(input, () => {
+      const actual = parse(input)
+      expect(actual).toStrictEqual(output)
+    })
+  }
 })
 
-describe('serialize: strings', function () {
-  const check = (a, b) => t(a, serialize(b), a)
+describe('serialize: strings', () => {
+  const cases = [
+    ['(,"")', new Range(null, '')],
+    ['("",)', new Range('', null)],
+    ['("""A""","""Z""")', new Range('"A"', '"Z"', [])],
+    ['("\\\\A\\\\","\\\\Z\\\\")', new Range('\\A\\', '\\Z\\', [])],
+    ['("(A)","(Z)")', new Range('(A)', '(Z)', [])],
+    ['("[A]","[Z]")', new Range('[A]', '[Z]', [])],
+  ] as const
 
-  check('(,"")', new Range(null, '', RANGE_LB_INF))
-  check('("",)', new Range('', null, RANGE_UB_INF))
-  check('("""A""","""Z""")', new Range('"A"', '"Z"', 0))
-  check('("\\\\A\\\\","\\\\Z\\\\")', new Range('\\A\\', '\\Z\\', 0))
-  check('("(A)","(Z)")', new Range('(A)', '(Z)', 0))
-  check('("[A]","[Z]")', new Range('[A]', '[Z]', 0))
+  for (const [output, input] of cases) {
+    test(output, () => {
+      const actual = serialize(input)
+      expect(actual).toStrictEqual(output)
+    })
+  }
 })
 
-describe('serialize: numbers', function () {
-  const check = (a, b) => t(a, serialize(b), a)
+describe('serialize: numbers', () => {
+  const cases = [
+    ['(,0)', new Range(null, 0)],
+    ['(0,)', new Range(0, null)],
+    ['(1.1,9.9)', new Range(1.1, 9.9)],
+  ] as const
 
-  check('(,0)', new Range(null, 0, RANGE_LB_INF))
-  check('(0,)', new Range(0, null, RANGE_UB_INF))
-  check('(1.1,9.9)', new Range(1.1, 9.9, 0))
+  for (const [output, input] of cases) {
+    test(output, () => {
+      const actual = serialize(input)
+      expect(actual).toStrictEqual(output)
+    })
+  }
 })
 
-describe('roundtrip', function () {
-  const trip = raw => t(serialize(parse(raw)), raw, raw)
-
-  trip('empty')
-  trip('(0,)')
-  trip('(0,10)')
-  trip('(,10)')
-  trip('(0,1]')
-  trip('[0,1]')
-  trip('[0,1)')
+describe('Range methods', () => {
+  test('[1, 10).containsPoint(5) is true', () => {
+    const range = parse('[1, 10)', x => Number.parseInt(x))
+    expect(range.containsPoint(5)).toBe(true)
 })
 
-describe('Range', function () {
-  t(parse('[1, 10)', x => parseInt(x)).containsPoint(5), true, '[1, 10).containsPoint(5) is true')
-  t(parse('[1, 10)', x => parseInt(x)).containsPoint(-5), false, '[1, 10).containsPoint(-5) is false')
-  t(parse('[1, 10)', x => parseInt(x)).containsRange(parse('[1, 3]', x => parseInt(x))), true, '[1, 10).containsRange(\'[1, 3]\') is true')
-  t(parse('[1, 10)', x => parseInt(x)).containsRange(parse('[-1, 3]', x => parseInt(x))), false, '[1, 10).containsRange(\'[-1, 3]\') is false')
+  test('[1, 10).containsPoint(-5) is false', () => {
+    const range = parse('[1, 10)', x => Number.parseInt(x))
+    expect(range.containsPoint(-5)).toBe(false)
+  })
+
+  test('[1, 10).containsRange([1, 3]) is true', () => {
+    const range1 = parse('[1, 10)', x => Number.parseInt(x))
+    const range2 = parse('[1, 3]', x => Number.parseInt(x))
+    expect(range1.containsRange(range2)).toBe(true)
+})
+
+  test('[1, 10).containsRange([-1, 3]) is false', () => {
+    const range1 = parse('[1, 10)', x => Number.parseInt(x))
+    const range2 = parse('[-1, 3]', x => Number.parseInt(x))
+    expect(range1.containsRange(range2)).toBe(false)
+  })
 })
