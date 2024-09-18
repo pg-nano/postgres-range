@@ -1,82 +1,53 @@
-# postgres-range [![tests](https://github.com/martianboy/postgres-range/workflows/tests/badge.svg)](https://github.com/martianboy/postgres-range/actions?query=workflow%3Atests)
+# postgres-range
 
-> Parse postgres range columns
+Parse and serialize PostgreSQL range types.
 
-
-## Install
-
-```
-npm install --save postgres-range
-```
-
+⚠️ **This package is unreleased.** It gets bundled into `pg-nano`.
 
 ## Usage
 
-```js
-const range = require('postgres-range')
-
-const rng = range.parse('[0,5)', (value) => parseInt(value, 10))
-rng.isBounded()
-// => true
-rng.isLowerBoundClosed()
-// => true
-rng.isUpperBoundClosed()
-// => false
-rng.hasLowerBound()
-// => true
-rng.hasUpperBound()
-// => true
-
-rng.containsPoint(4)
-// => true
-rng.containsRange(range.parse('[1,2]', x => parseInt(x)))
-// => true
-
-range.parse('empty').isEmpty()
-// => true
-
-range.serialize(new range.Range(0, 5))
-// => '(0,5)'
-range.serialize(new range.Range(0, 5, range.RANGE_LB_INC | RANGE_UB_INC))
-// => '[0,5]'
+```sh
+import { Range, RangeFlag, RangeParserError } from 'pg-nano'
 ```
 
-## API
+### Enums
 
-#### `parse(input, [transform])` -> `Range`
+#### `RangeFlag`
 
-##### input
+An enumeration of flags used to describe range properties.
 
-*Required*  
-Type: `string`
+- `Empty`: Indicates an empty range
+- `LowerBoundClosed`: Indicates a closed lower bound
+- `UpperBoundClosed`: Indicates a closed upper bound
 
-A Postgres range string.
+### Classes
 
-##### transform
+#### `RangeParserError`
 
-Type: `function`  
-Default: `identity`
+A custom error class for range parsing errors.
 
-A function that transforms non-null bounds of the range.
+#### `Range<T>`
 
+A class representing a range of values of type `T`.
 
-#### `serialize(range, [format])` -> `string`
+##### Constructor
+- `constructor(lower: T | null, upper: T | null, flags: RangeFlag[] = [])`
 
-##### range
+##### Methods
+- `hasFlag(flag: RangeFlag): boolean`: Checks if the range has a specific flag
+- `hasFlags(flags: RangeFlag[]): boolean`: Checks if the range has all the specified flags
+- `isEmpty(): boolean`: Checks if the range is empty
+- `isLowerBoundClosed(): boolean`: Checks if the lower bound is closed
+- `isUpperBoundClosed(): boolean`: Checks if the upper bound is closed
+- `containsPoint(point: T): boolean`: Checks if the range contains a specific point
+- `containsRange(range: Range<T>): boolean`: Checks if the range contains another range
 
-*Required*  
-Type: `Range`
+### Functions
 
-A `Range` object.
+#### `parse<T>(input: string, transform?: (value: string) => T): Range<T>`
 
-##### format
+Parses a string representation of a range into a `Range<T>` object.
 
-Type: `function`  
-Default: `identity`
+#### `serialize<T>(range: Range<T>, format?: (value: T) => string): string`
 
-A function that formats non-null bounds of the range.
-
-
-## License
-
-MIT © [Abbas Mashayekh](http://github.com/martianboy)
+Serializes a `Range<T>` object into its string representation.
