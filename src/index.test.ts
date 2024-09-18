@@ -23,7 +23,7 @@ describe('parse', () => {
   for (const [input, output] of cases) {
     test(input, () => {
       expect(parse(input)).toStrictEqual(output)
-})
+    })
   }
 })
 
@@ -107,7 +107,7 @@ describe('Range methods', () => {
   test('[1, 10).containsPoint(5) is true', () => {
     const range = parse('[1, 10)', x => Number.parseInt(x))
     expect(range.containsPoint(5)).toBe(true)
-})
+  })
 
   test('[1, 10).containsPoint(-5) is false', () => {
     const range = parse('[1, 10)', x => Number.parseInt(x))
@@ -118,7 +118,7 @@ describe('Range methods', () => {
     const range1 = parse('[1, 10)', x => Number.parseInt(x))
     const range2 = parse('[1, 3]', x => Number.parseInt(x))
     expect(range1.containsRange(range2)).toBe(true)
-})
+  })
 
   test('[1, 10).containsRange([-1, 3]) is false', () => {
     const range1 = parse('[1, 10)', x => Number.parseInt(x))

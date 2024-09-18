@@ -38,21 +38,21 @@ export class Range<T extends {}> {
   containsPoint(point: T): boolean {
     if (this.lower !== null && this.upper !== null) {
       const inLower = this.isLowerBoundClosed()
-                ? this.lower <= point
+        ? this.lower <= point
         : this.lower < point
       const inUpper = this.isUpperBoundClosed()
-                ? this.upper >= point
+        ? this.upper >= point
         : this.upper > point
       return inLower && inUpper
-        }
+    }
     if (this.lower !== null) {
       return this.isLowerBoundClosed()
-                ? this.lower <= point
+        ? this.lower <= point
         : this.lower < point
-        }
+    }
     if (this.upper !== null) {
       return this.isUpperBoundClosed()
-                ? this.upper >= point
+        ? this.upper >= point
         : this.upper > point
     }
     return true // Infinite range
@@ -74,14 +74,14 @@ export function parse<T extends {}>(
   transform: (value: string) => T = x => x as any,
 ): Range<T> {
   input = input.trim()
-    if (input === EMPTY) {
+  if (input === EMPTY) {
     return new Range<T>(null, null, [RangeFlag.Empty])
-    }
+  }
 
   let ptr = 0
   const flags: RangeFlag[] = []
 
-    if (input[ptr] === '[') {
+  if (input[ptr] === '[') {
     flags.push(RangeFlag.LowerBoundClosed)
     ptr += 1
   } else if (input[ptr] === '(') {
@@ -96,7 +96,7 @@ export function parse<T extends {}>(
 
   ptr = parseBound(range, 'lower', input, ptr, transform)
 
-    if (input[ptr] === ',') {
+  if (input[ptr] === ',') {
     ptr += 1
   } else {
     throw new RangeParserError(
@@ -106,7 +106,7 @@ export function parse<T extends {}>(
 
   ptr = parseBound(range, 'upper', input, ptr, transform)
 
-    if (input[ptr] === ']') {
+  if (input[ptr] === ']') {
     flags.push(RangeFlag.UpperBoundClosed)
     ptr += 1
   } else if (input[ptr] === ')') {
@@ -142,18 +142,18 @@ function parseBound<T extends {}>(
     !(input[ptr] === ',' || input[ptr] === ')' || input[ptr] === ']')
   ) {
     ch = input[ptr++]
-            if (ch === undefined) {
+    if (ch === undefined) {
       throw new RangeParserError(`Unexpected end of input. Position: ${ptr}`)
-            }
-            if (ch === '\\') {
-                if (input[ptr] === undefined) {
+    }
+    if (ch === '\\') {
+      if (input[ptr] === undefined) {
         throw new RangeParserError(`Unexpected end of input. Position: ${ptr}`)
-                }
+      }
       value += input.slice(pos, ptr - 1) + input[ptr]
       ptr += 1
       pos = ptr
     } else if (ch === '"') {
-                if (!inQuote) {
+      if (!inQuote) {
         inQuote = true
         pos += 1
       } else if (input[ptr] === '"') {
@@ -164,11 +164,11 @@ function parseBound<T extends {}>(
         inQuote = false
         value += input.slice(pos, ptr - 1)
         pos = ptr + 1
-                }
-            }
-        }
+      }
+    }
+  }
 
-        if (ptr > pos) {
+  if (ptr > pos) {
     value += input.slice(pos, ptr)
   }
 
@@ -197,53 +197,53 @@ function serializeBound(bnd: any): string {
   let pos = 0
   let value = ''
 
-    if (typeof bnd !== 'string') {
+  if (typeof bnd !== 'string') {
     if (typeof bnd === 'number' || typeof bnd === 'bigint') {
       return bnd.toString()
     }
     bnd = String(bnd)
-    }
+  }
 
-    if (bnd === null || bnd.length === 0) {
+  if (bnd === null || bnd.length === 0) {
     return '""'
-    }
+  }
 
   bnd = bnd.trim()
-    for (let i = 0; i < bnd.length; i++) {
+  for (let i = 0; i < bnd.length; i++) {
     const ch = bnd[i]
     if (
       ch === '"' ||
-            ch === '\\' ||
-            ch === '(' ||
-            ch === ')' ||
-            ch === '[' ||
-            ch === ']' ||
-            ch === ',' ||
+      ch === '\\' ||
+      ch === '(' ||
+      ch === ')' ||
+      ch === '[' ||
+      ch === ']' ||
+      ch === ',' ||
       ch === ' '
     ) {
       needsQuotes = true
       break
-        }
     }
+  }
 
-    if (needsQuotes) {
+  if (needsQuotes) {
     value += '"'
-    }
+  }
 
   let ptr = 0
-    for (; ptr < bnd.length; ptr++) {
+  for (; ptr < bnd.length; ptr++) {
     const ch = bnd[ptr]
-        if (ch === '"' || ch === '\\') {
+    if (ch === '"' || ch === '\\') {
       value += bnd.slice(pos, ptr + 1) + ch
       pos = ptr + 1
-        }
     }
+  }
 
-    if (ptr > pos) {
+  if (ptr > pos) {
     value += bnd.slice(pos, ptr)
-    }
+  }
 
-    if (needsQuotes) {
+  if (needsQuotes) {
     value += '"'
   }
 
