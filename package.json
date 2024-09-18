@@ -2,9 +2,19 @@
   "name": "postgres-range",
   "type": "module",
   "version": "1.1.4",
-  "description": "Range data type parser and serializer for PostgreSQL",
-  "main": "index.js",
-  "repository": "https://github.com/martianboy/postgres-range",
+  "description": "Parse and serialize PostgreSQL range types",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/pg-nano/postgres-range"
+  },
   "author": "Abbas Mashayekh <martianboy2005@gmail.com>",
   "license": "MIT",
   "scripts": {
