@@ -20,7 +20,7 @@
   "scripts": {
     "test": "vitest",
     "build": "rimraf dist && tsc -p .",
-    "dev": "rimraf dist && tsc -p . --watch --sourcemap --declarationMap"
+    "dev": "tsc -p . --watch --sourcemap --declarationMap"
   },
   "devDependencies": {
     "rimraf": "^6.0.1",
